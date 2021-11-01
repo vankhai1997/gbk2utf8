@@ -39,17 +39,18 @@ class GbkCodec extends Encoding {
 }
 
 int unicode2gbkOne(int unicode) {
+  int off;
 
-  int offset;
-
-  if (unicode <= 0x9FA5)
-    offset = unicode - 0x4E00;
-  else if (unicode > 0x9FA5) //是标点符号
+  if (unicode <= 0x9FA5) {
+    off = unicode - 0x4E00;
+  } else if (unicode > 0x9FA5) //是标点符号
   {
     if (unicode < 0xFF01 || unicode > 0xFF61) return 0; //没有对应编码
-    offset = unicode - 0XFF01 + 0X9FA6 - 0X4E00;
+    off = unicode - 0XFF01 + 0X9FA6 - 0X4E00;
+  } else {
+    off = 0;
   }
-  return gbkTables[offset]; //读取UNICODE转GBK编码表
+  return gbkTables[off]; //读取UNICODE转GBK编码表
 }
 
 List<int> unicode2gbk(List<int> res) {
@@ -57,17 +58,17 @@ List<int> unicode2gbk(List<int> res) {
   for (int i = 0, l = res.length; i < l; ++i) {
     //注意这里必须是bytes array而不是word array，所以需要拆除高低位
     int unicode = res[i];
-    if(unicode <= 0x80){
+    if (unicode <= 0x80) {
       resp.add(unicode);
-    }else{
+    } else {
       int value = unicode2gbkOne(unicode);
-      if(value == 0){
+      if (value == 0) {
         continue;
       }
-      resp.add((value >> 8 )& 0xff );
-      resp.add( value & 0xff  );
+      resp.add((value >> 8) & 0xff);
+      resp.add(value & 0xff);
     }
-   // resp[i] = unicode2gbkOne(unicode);
+    // resp[i] = unicode2gbkOne(unicode);
   }
   return resp;
 }
@@ -84,7 +85,7 @@ List<int> gbk2unicode(List<int> gbk_buf) {
   int ch;
   int word; //unsigned short
   int word_pos;
-  List<int> uni_ptr = new List()..length = gbk_buf.length;
+  List<int> uni_ptr = List.generate(gbk_buf.length, (index) => 0);
 
   for (; gbk_ind < gbk_buf.length;) {
     ch = gbk_buf[gbk_ind];
@@ -146,7 +147,7 @@ List<int> utf82unicode(List<int> bytes) {
 ///Word array to utf-8
 List<int> unicode2utf8(List<int> wordArray) {
   // a utf-8 character is 3 bytes
-  List<int> list = new List()..length = wordArray.length * 3;
+  List<int> list = List.generate(wordArray.length * 3, (index) => 0);
   int pos = 0;
 
   for (int i = 0, c = wordArray.length; i < c; ++i) {
